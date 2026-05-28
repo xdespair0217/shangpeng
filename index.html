@@ -2,27 +2,25 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>尚鵬內湖廠 考勤點名決策面板</title>
     <style>
         :root {
-            --bg-main: #121212;          /* 極致深黑背景 */
-            --bg-card: #1a1a1a;          /* 卡片與表格主體鈦金灰 */
-            --bg-sticky: #222222;        /* 凍結欄位深灰 */
-            --bg-saturday: #2d2d2d;      /* 週六沉穩灰 */
-            --bg-sunday: #3a1519;        /* 週日固定深紅 */
-            --border-fine: #333333;      /* 細緻邊框線 */
-            --text-primary: #e0e0e0;     /* 主文字白 */
-            --text-muted: #888888;       /* 次要文字灰 */
+            --bg-main: #121212;          
+            --bg-card: #1a1a1a;          
+            --bg-sticky: #222222;        
+            --bg-saturday: #2d2d2d;      
+            --bg-sunday: #3a1519;        
+            --border-fine: #333333;      
+            --text-primary: #e0e0e0;     
+            --text-muted: #888888;       
             
-            /* 高飽和點名色彩管理 */
-            --color-present: #28a745;    /* ✔ 到：翡翠綠 */
-            --color-off: #17a2b8;        /* 排休：科技藍 */
-            --color-leave: #dc3545;      /* 請假：明亮紅 */
-            --color-national: #ff0055;   /* 國定假日標記 */
+            --color-present: #28a745;    
+            --color-off: #17a2b8;        
+            --color-leave: #dc3545;      
+            --color-national: #ff0055;   
         }
 
-        /* 鎖死全域高度，禁止外層出現上下滾動條 */
         html, body {
             margin: 0;
             padding: 0;
@@ -34,7 +32,6 @@
             box-sizing: border-box;
         }
 
-        /* 滿版容器設計 */
         .container {
             height: 100vh;
             display: flex;
@@ -44,7 +41,6 @@
             background: var(--bg-card);
         }
 
-        /* 頂部標頭 */
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -86,7 +82,6 @@
             background-position: calc(100% - 10px) center;
         }
 
-        /* 表格動態高度區（上下滾動完全鎖死，僅允許橫向滾動日期） */
         .table-responsive {
             flex-grow: 1; 
             overflow-x: auto;
@@ -94,6 +89,7 @@
             margin: 10px 0;
             border: 1px solid var(--border-fine);
             border-radius: 6px;
+            -webkit-overflow-scrolling: touch; /* 讓手機端滾動更滑順 */
         }
 
         table {
@@ -120,7 +116,7 @@
             height: 28px;
         }
 
-        /* 凍結欄位 */
+        /* 桌機端預設凍結寬度 */
         .sticky-col-1 {
             position: sticky;
             left: 0;
@@ -147,13 +143,11 @@
             background-color: #2a2a2a !important;
         }
 
-        /* 日期流變色 */
         .saturday { background-color: var(--bg-saturday) !important; }
         th.saturday { color: #00bfff !important; }
         .sunday { background-color: var(--bg-sunday) !important; color: #ff6b6b !important; }
         th.sunday { background-color: #2b1114 !important; color: #ff4554 !important; }
 
-        /* 微型選單結構 */
         .attendance-select {
             width: 92%;
             height: 85%;
@@ -186,7 +180,6 @@
         .cell-off { background-color: var(--color-off) !important; color: #ffffff !important; }
         .cell-leave { background-color: var(--color-leave) !important; color: #ffffff !important; }
         
-        /* 國定假日純視覺浮水印 */
         .cell-national::before {
             content: "國";
             position: absolute;
@@ -201,7 +194,6 @@
         }
         .cell-national { background-color: rgba(255, 0, 85, 0.05) !important; }
 
-        /* 頁尾資訊區 */
         .footer-section {
             display: flex;
             justify-content: space-between;
@@ -233,6 +225,29 @@
         .legal-notice { flex: 3; padding: 0 20px; font-size: 11px; text-align: justify; line-height: 1.4; }
         .signature-area { flex: 1.5; text-align: right; color: var(--text-primary); font-size: 13px; }
         .signature-line { border-bottom: 1px solid #555; width: 100px; display: inline-block; margin-left: 5px; vertical-align: middle;}
+
+        /* ==========================================================================
+           📱 【核心防守：手機端獨立視覺與操作感優化規則】 (現有框架完全不動)
+           ========================================================================== */
+        @media (max-width: 768px) {
+            .container { padding: 10px 10px; }
+            .title-group h1 { font-size: 18px; }
+            .nav-select { font-size: 13px; padding: 2px 24px 2px 8px; }
+            
+            /* 縮緊左側固定欄，把黃金空間留給橫向滾動 */
+            .sticky-col-1 { width: 62px !important; min-width: 62px !important; font-size: 11px; }
+            .sticky-col-2 { width: 55px !important; min-width: 55px !important; left: 62px !important; font-size: 11px; }
+            
+            /* 關鍵放大：讓手機端的每一天格子放大到 42px，徹底解決手指太肥按錯的問題 */
+            th, td { min-width: 42px !important; height: 25px !important; font-size: 11px; }
+            .attendance-select { font-size: 11px; }
+            
+            /* 頁尾在手機端轉為精簡縮微版 */
+            .footer-section { flex-direction: column; gap: 8px; align-items: flex-start; }
+            .status-legend { width: 100%; justify-content: space-between; gap: 0; }
+            .legal-notice { display: none; } /* 手機端自動隱藏冗長法律宣告 */
+            .signature-area { width: 100%; text-align: left; font-size: 12px; margin-top: 2px; }
+        }
     </style>
 </head>
 <body>
@@ -282,9 +297,9 @@
 
     <div class="footer-section">
         <div class="status-legend">
-            <div class="legend-item"><span class="legend-badge badge-present">✔ 到</span>當日確認出席</div>
-            <div class="legend-item"><span class="legend-badge badge-off">排休</span>預排休假/輪休</div>
-            <div class="legend-item"><span class="legend-badge badge-leave">請假</span>事/病假臨時缺勤</div>
+            <div class="legend-item"><span class="legend-badge badge-present">✔ 到</span>當日出席</div>
+            <div class="legend-item"><span class="legend-badge badge-off">排休</span>預排休假</div>
+            <div class="legend-item"><span class="legend-badge badge-leave">請假</span>臨時缺勤</div>
         </div>
         <div class="legal-notice">
             本看板整合既定排班與每日動態點名。未盡事宜悉依最新勞基法辦理。
@@ -324,7 +339,6 @@
         { role: "噴漆技師", name: "黃俊隆" }
     ];
 
-    // 初始化基礎排班底稿（若瀏覽器保險箱為空，則以此為預填範本）
     const initialDatabase = {
         "2026-5": {
             "賴建良-7": "off", "賴建良-14": "off", "賴建良-18": "off", "賴建良-23": "off", "賴建良-25": "off",
@@ -359,7 +373,6 @@
         }
     };
 
-    // 核心資料啟動：優先自 LocalStorage 提取記憶庫，若無則生成並初始化
     let globalDatabase = JSON.parse(localStorage.getItem('shangpeng_attendance_db'));
     if (!globalDatabase) {
         globalDatabase = initialDatabase;
@@ -434,7 +447,6 @@
                 } else {
                     if (dayOfWeek === 6) tdCell.classList.add("saturday");
 
-                    // 國定假日視覺提醒
                     if (targetYear === 2026 && targetMonth === 5 && d === 1 && emp.name !== "") {
                         tdCell.classList.add("cell-national");
                     }
@@ -472,7 +484,6 @@
                             if (savedStatus === "leave") select.classList.add("cell-leave");
                         }
 
-                        // 修改事件監聽：當您修改任何出勤狀況，立刻寫入 LocalStorage。重整絕不丟失。
                         select.addEventListener("change", function() {
                             this.classList.remove("cell-present", "cell-off", "cell-leave");
                             
@@ -483,7 +494,6 @@
                                 currentMonthData[empDateKey] = this.value;
                             }
                             
-                            // 核心存檔指令：強制寫入瀏覽器在地資料庫
                             localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
                         });
 
@@ -499,7 +509,6 @@
     yearSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
     monthSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
 
-    // 初始進入點預設啟動 2026 年 6 月
     renderAttendanceTable(2026, 6);
 </script>
 
