@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>尚鵬內湖廠 考勤點名決策面板</title>
+    <style>
+        :root {
+            --bg-main: #121212;          /* 極致深黑背景 */
+            --bg-card: #1a1a1a;          /* 卡片與表格主體鈦金灰 */
+            --bg-sticky: #222222;        /* 凍結欄位深灰 */
+            --bg-saturday: #2d2d2d;      /* 週六沉穩灰 */
+            --bg-sunday: #3a1519;        /* 週日固定深紅 */
+            --border-fine: #333333;      /* 細緻邊框線 */
+            --text-primary: #e0e0e0;     /* 主文字白 */
+            --text-muted: #888888;       /* 次要文字灰 */
+            
+            /* 高飽和點名色彩管理 */
+            --color-present: #28a745;    /* ✔ 到：翡翠綠 */
+            --color-off: #17a2b8;        /* 排休：科技藍 */
+            --color-leave: #dc3545;      /* 請假：明亮紅 */
+            --color-national: #ff0055;   /* 國定假日標記 */
+        }
+
+        /* 鎖死全域高度，禁止外層出現上下滾動條 */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--bg-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            color: var(--text-primary);
+            box-sizing: border-box;
+        }
+
+        /* 滿版容器設計 */
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 15px 20px;
+            box-sizing: border-box;
+            background: var(--bg-card);
+        }
+
+        /* 頂部標頭 */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+            flex-shrink: 0;
+        }
+
+        .title-group h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            background: linear-gradient(45deg, #ffffff, #aaaaaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .date-control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-select {
+            background-color: #262626;
+            border: 1px solid var(--border-fine);
+            color: #ffffff;
+            padding: 4px 28px 4px 10px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888888' viewBox='0 0 16 16'><path d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: calc(100% - 10px) center;
+        }
+
+        /* 表格動態高度區（上下滾動完全鎖死，僅允許橫向滾動日期） */
+        .table-responsive {
+            flex-grow: 1; 
+            overflow-x: auto;
+            overflow-y: hidden; 
+            margin: 10px 0;
+            border: 1px solid var(--border-fine);
+            border-radius: 6px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px; 
+            text-align: center;
+            table-layout: fixed; 
+        }
+
+        th, td {
+            border: 1px solid var(--border-fine);
+            padding: 0; 
+            min-width: 32px; 
+            height: 26px; 
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        th {
+            font-weight: 600;
+            background-color: #1f1f1f;
+            color: #ffffff;
+            height: 28px;
+        }
+
+        /* 凍結欄位 */
+        .sticky-col-1 {
+            position: sticky;
+            left: 0;
+            background-color: var(--bg-sticky) !important;
+            z-index: 3;
+            width: 85px;
+            min-width: 85px;
+            font-weight: bold;
+        }
+
+        .sticky-col-2 {
+            position: sticky;
+            left: 85px;
+            background-color: var(--bg-sticky) !important;
+            z-index: 3;
+            width: 80px;
+            min-width: 80px;
+            font-weight: bold;
+            border-right: 2px solid #444444;
+        }
+
+        th.sticky-col-1, th.sticky-col-2 {
+            z-index: 4;
+            background-color: #2a2a2a !important;
+        }
+
+        /* 日期流變色 */
+        .saturday { background-color: var(--bg-saturday) !important; }
+        th.saturday { color: #00bfff !important; }
+        .sunday { background-color: var(--bg-sunday) !important; color: #ff6b6b !important; }
+        th.sunday { background-color: #2b1114 !important; color: #ff4554 !important; }
+
+        /* 微型選單結構 */
+        .attendance-select {
+            width: 92%;
+            height: 85%;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            text-align: center;
+            text-align-last: center;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            outline: none;
+            appearance: none; 
+            border-radius: 4px; 
+            transition: all 0.1s ease;
+            position: relative;
+            z-index: 2;
+        }
+
+        td:hover .attendance-select {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .attendance-select option {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .cell-present { background-color: var(--color-present) !important; color: #ffffff !important; }
+        .cell-off { background-color: var(--color-off) !important; color: #ffffff !important; }
+        .cell-leave { background-color: var(--color-leave) !important; color: #ffffff !important; }
+        
+        /* 國定假日純視覺浮水印 */
+        .cell-national::before {
+            content: "國";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 0, 85, 0.4);
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .cell-national { background-color: rgba(255, 0, 85, 0.05) !important; }
+
+        /* 頁尾資訊區 */
+        .footer-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid #2d2d2d;
+            padding-top: 10px;
+            flex-shrink: 0;
+        }
+
+        .status-legend { flex: 2; display: flex; gap: 15px; }
+        .legend-item { display: flex; align-items: center; }
+        .legend-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-right: 5px;
+            text-align: center;
+            min-width: 35px;
+        }
+        .badge-present { background: var(--color-present); }
+        .badge-off { background: var(--color-off); }
+        .badge-leave { background: var(--color-leave); }
+
+        .legal-notice { flex: 3; padding: 0 20px; font-size: 11px; text-align: justify; line-height: 1.4; }
+        .signature-area { flex: 1.5; text-align: right; color: var(--text-primary); font-size: 13px; }
+        .signature-line { border-bottom: 1px solid #555; width: 100px; display: inline-block; margin-left: 5px; vertical-align: middle;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <div class="title-group">
+            <h1>尚鵬內湖廠 考勤點名面板</h1>
+        </div>
+        <div class="date-control-group">
+            <select id="select-year" class="nav-select">
+                <option value="2026">2026 年</option>
+                <option value="2027">2027 年</option>
+            </select>
+            <select id="select-month" class="nav-select">
+                <option value="1">01 月</option>
+                <option value="2">02 月</option>
+                <option value="3">03 月</option>
+                <option value="4">04 月</option>
+                <option value="5">05 月</option>
+                <option value="6" selected>06 月</option> 
+                <option value="7">07 月</option>
+                <option value="8">08 月</option>
+                <option value="9">09 月</option>
+                <option value="10">10 月</option>
+                <option value="11">11 月</option>
+                <option value="12">12 月</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table id="attendanceTable">
+            <thead>
+                <tr id="header-dates">
+                    <th class="sticky-col-1">職稱</th>
+                    <th class="sticky-col-2">姓名</th>
+                </tr>
+                <tr id="header-days">
+                    <th class="sticky-col-1"></th>
+                    <th class="sticky-col-2"></th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div class="footer-section">
+        <div class="status-legend">
+            <div class="legend-item"><span class="legend-badge badge-present">✔ 到</span>當日確認出席</div>
+            <div class="legend-item"><span class="legend-badge badge-off">排休</span>預排休假/輪休</div>
+            <div class="legend-item"><span class="legend-badge badge-leave">請假</span>事/病假臨時缺勤</div>
+        </div>
+        <div class="legal-notice">
+            本看板整合既定排班與每日動態點名。未盡事宜悉依最新勞基法辦理。
+        </div>
+        <div class="signature-area">
+            廠主管：謝或翰 <span class="signature-line"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dayWords = ["日", "一", "二", "三", "四", "五", "六"];
+    
+    const employees = [
+        { role: "接待組長", name: "徐漢威" },
+        { role: "服務顧問", name: "陳嘉駒" },
+        { role: "服務顧問", name: "趙少華" },
+        { role: "服務顧問", name: "周永盛" },
+        { role: "出納專員", name: "劉安莉" },
+        { role: "出納專員", name: "陳宥鈺" },
+        { role: "零件組長", name: "葉佳俊" },
+        { role: "零件主任", name: "林偲育" },
+        { role: "技師長", name: "許俊皇" },
+        { role: "技師長", name: "黃宗南" },
+        { role: "引擎技師", name: "張安慶" },
+        { role: "引擎技師", name: "鄭博文" },
+        { role: "引擎技師", name: "吳瑀森" },
+        { role: "引擎技師", name: "張啟宏" },
+        { role: "引擎技師", name: "林傳傑" },
+        { role: "飯烤主任", name: "賴建良" }, 
+        { role: "鈑金領班", name: "陳哲鋒" },
+        { role: "鈑金技師", name: "許晉益" },
+        { role: "鈑金技師", name: "張元信" },
+        { role: "鈑金技師", name: "劉建昌" },
+        { role: "噴漆技師", name: "潘世宗" },
+        { role: "噴漆技師", name: "林哲宏" },
+        { role: "噴漆技師", name: "黃俊隆" }
+    ];
+
+    // 初始化基礎排班底稿（若瀏覽器保險箱為空，則以此為預填範本）
+    const initialDatabase = {
+        "2026-5": {
+            "賴建良-7": "off", "賴建良-14": "off", "賴建良-18": "off", "賴建良-23": "off", "賴建良-25": "off",
+            "周永盛-4": "leave", "周永盛-8": "off", "周永盛-13": "off", "周永盛-20": "off", "周永盛-27": "off",
+            "陳哲鋒-7": "off", "陳哲鋒-14": "off", "陳哲鋒-21": "off", "陳哲鋒-28": "off",
+            "許晉益-6": "off", "許晉益-9": "off", "許晉益-16": "off", "許晉益-18": "leave", "許晉益-23": "off", "許晉益-31": "off",
+            "張元信-5": "off", "張元信-20": "off", "張元信-26": "off",
+            "潘世宗-6": "off", "潘世宗-16": "off", "潘世宗-23": "off", "潘世宗-31": "off"
+        },
+        "2026-6": {
+            "徐漢威-3": "off", "徐漢威-13": "off", "徐漢威-24": "off", "徐漢威-30": "off",
+            "陳嘉駒-6": "off", "陳嘉駒-20": "off", "陳嘉駒-27": "off",
+            "趙少華-2": "off", "趙少華-16": "off", "趙少華-17": "off", "趙少華-22": "off",
+            "周永盛-3": "off", "周永盛-10": "off", "周永盛-25": "off", "周永盛-30": "off",
+            "劉安莉-6": "off", "劉安莉-13": "off", "劉安莉-20": "off", "劉安莉-27": "off",
+            "陳宥鈺-4": "off", "陳宥鈺-9": "off", "陳宥鈺-20": "off", "陳宥鈺-25": "off",
+            "葉佳俊-5": "off", "葉佳俊-12": "off", "葉佳俊-18": "off", "葉佳俊-26": "off",
+            "林偲育-6": "off", "林偲育-13": "off", "林偲育-22": "off", "林偲育-27": "off",
+            "許俊皇-6": "off", "許俊皇-13": "off", "許俊皇-20": "off", "許俊皇-27": "off",
+            "黃宗南-3": "off", "黃宗南-10": "off", "黃宗南-24": "off", "黃宗南-29": "off",
+            "張安慶-1": "off", "張安慶-2": "off", "張安慶-10": "off", "張安慶-29": "off",
+            "鄭博文-5": "off", "鄭博文-12": "off", "鄭博文-18": "off", "鄭博文-27": "off",
+            "吳瑀森-3": "off", "吳瑀森-10": "off", "吳瑀森-17": "leave", "吳瑀森-18": "leave", "吳瑀森-20": "off", "吳瑀森-24": "off",
+            "張啟宏-2": "off", "張啟宏-4": "off", "張啟宏-20": "off", "張啟宏-27": "off",
+            "林傳傑-5": "off", "林傳傑-8": "off", "林傳傑-15": "off", "林傳傑-22": "off",
+            "賴建良-6": "off", "賴建良-10": "off", "賴建良-20": "off", "賴建良-26": "off",
+            "陳哲鋒-4": "off", "陳哲鋒-9": "off", "陳哲鋒-18": "off", "陳哲鋒-25": "off",
+            "許晉益-6": "off", "許晉益-13": "off", "許晉益-20": "off", "許晉益-27": "off",
+            "張元信-3": "off", "張元信-8": "off", "張元信-15": "off", "張元信-22": "off",
+            "劉建昌-6": "off", "劉建昌-13": "off", "劉建昌-20": "off", "劉建昌-27": "off",
+            "潘世宗-6": "off", "潘世宗-13": "off", "潘世宗-20": "off", "潘世宗-27": "off"
+        }
+    };
+
+    // 核心資料啟動：優先自 LocalStorage 提取記憶庫，若無則生成並初始化
+    let globalDatabase = JSON.parse(localStorage.getItem('shangpeng_attendance_db'));
+    if (!globalDatabase) {
+        globalDatabase = initialDatabase;
+        localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+    }
+
+    const yearSelect = document.getElementById("select-year");
+    const monthSelect = document.getElementById("select-month");
+
+    function renderAttendanceTable(targetYear, targetMonth) {
+        targetYear = parseInt(targetYear);
+        targetMonth = parseInt(targetMonth);
+
+        const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+        
+        const headerDates = document.getElementById("header-dates");
+        const headerDays = document.getElementById("header-days");
+        
+        while (headerDates.children.length > 2) headerDates.removeChild(headerDates.lastChild);
+        while (headerDays.children.length > 2) headerDays.removeChild(headerDays.lastChild);
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateObj = new Date(targetYear, targetMonth - 1, d);
+            const dayOfWeek = dateObj.getDay();
+
+            const thDate = document.createElement("th");
+            thDate.innerText = d;
+            
+            const thDay = document.createElement("th");
+            thDay.innerText = dayWords[dayOfWeek];
+
+            if (dayOfWeek === 0) {
+                thDate.className = "sunday"; thDay.className = "sunday";
+            } else if (dayOfWeek === 6) {
+                thDate.className = "saturday"; thDay.className = "saturday";
+            }
+
+            headerDates.appendChild(thDate);
+            headerDays.appendChild(thDay);
+        }
+
+        const tableBody = document.getElementById("table-body");
+        tableBody.innerHTML = "";
+
+        const monthKey = `${targetYear}-${targetMonth}`;
+        if (!globalDatabase[monthKey]) {
+            globalDatabase[monthKey] = {};
+        }
+        const currentMonthData = globalDatabase[monthKey];
+
+        employees.forEach(emp => {
+            const row = document.createElement("tr");
+
+            const tdRole = document.createElement("td");
+            tdRole.className = "sticky-col-1";
+            tdRole.innerText = emp.role;
+            row.appendChild(tdRole);
+
+            const tdName = document.createElement("td");
+            tdName.className = "sticky-col-2";
+            tdName.innerText = emp.name;
+            row.appendChild(tdName);
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const tdCell = document.createElement("td");
+                const dateObj = new Date(targetYear, targetMonth - 1, d);
+                const dayOfWeek = dateObj.getDay();
+
+                if (dayOfWeek === 0) {
+                    tdCell.className = "sunday";
+                    if (emp.name !== "") tdCell.innerText = "休";
+                } else {
+                    if (dayOfWeek === 6) tdCell.classList.add("saturday");
+
+                    // 國定假日視覺提醒
+                    if (targetYear === 2026 && targetMonth === 5 && d === 1 && emp.name !== "") {
+                        tdCell.classList.add("cell-national");
+                    }
+                    if (targetYear === 2026 && targetMonth === 6 && d === 19 && emp.name !== "") {
+                        tdCell.classList.add("cell-national");
+                    }
+
+                    if (emp.name !== "") {
+                        const select = document.createElement("select");
+                        select.className = "attendance-select";
+                        
+                        const optDefault = document.createElement("option");
+                        optDefault.value = ""; optDefault.innerText = ""; 
+                        
+                        const optPresent = document.createElement("option");
+                        optPresent.value = "present"; optPresent.innerText = "✔ 到";
+                        
+                        const optOff = document.createElement("option");
+                        optOff.value = "off"; optOff.innerText = "排休";
+                        
+                        const optLeave = document.createElement("option");
+                        optLeave.value = "leave"; optLeave.innerText = "請假";
+
+                        select.appendChild(optDefault);
+                        select.appendChild(optPresent);
+                        select.appendChild(optOff);
+                        select.appendChild(optLeave);
+
+                        const empDateKey = `${emp.name}-${d}`;
+                        if (currentMonthData[empDateKey]) {
+                            const savedStatus = currentMonthData[empDateKey];
+                            select.value = savedStatus;
+                            if (savedStatus === "present") select.classList.add("cell-present");
+                            if (savedStatus === "off") select.classList.add("cell-off");
+                            if (savedStatus === "leave") select.classList.add("cell-leave");
+                        }
+
+                        // 修改事件監聽：當您修改任何出勤狀況，立刻寫入 LocalStorage。重整絕不丟失。
+                        select.addEventListener("change", function() {
+                            this.classList.remove("cell-present", "cell-off", "cell-leave");
+                            
+                            if (this.value === "") {
+                                delete currentMonthData[empDateKey];
+                            } else {
+                                this.classList.add(`cell-${this.value}`);
+                                currentMonthData[empDateKey] = this.value;
+                            }
+                            
+                            // 核心存檔指令：強制寫入瀏覽器在地資料庫
+                            localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+                        });
+
+                        tdCell.appendChild(select);
+                    }
+                }
+                row.appendChild(tdCell);
+            }
+            tableBody.appendChild(row);
+        });
+    }
+
+    yearSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
+    monthSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
+
+    // 初始進入點預設啟動 2026 年 6 月
+    renderAttendanceTable(2026, 6);
+</script>
+
+</body>
+</html>
