@@ -15,9 +15,9 @@
             --text-primary: #e0e0e0;     
             --text-muted: #888888;       
             
-            --color-present: #28a745;    
-            --color-off: #17a2b8;        
-            --color-leave: #dc3545;      
+            --color-present: #28a745;    /* ✔ 到：翡翠綠 */
+            --color-off: #17a2b8;        /* 排休：科技藍 */
+            --color-leave: #dc3545;      /* 請假：明亮紅 */
             --color-national: #ff0055;   
         }
 
@@ -32,7 +32,10 @@
             box-sizing: border-box;
         }
 
-        .container {
+        /* ==========================================================================
+           💻 【電腦端佈局 (PC View)】
+           ========================================================================== */
+        #pc-container {
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -89,7 +92,6 @@
             margin: 10px 0;
             border: 1px solid var(--border-fine);
             border-radius: 6px;
-            -webkit-overflow-scrolling: touch; /* 讓手機端滾動更滑順 */
         }
 
         table {
@@ -116,7 +118,6 @@
             height: 28px;
         }
 
-        /* 桌機端預設凍結寬度 */
         .sticky-col-1 {
             position: sticky;
             left: 0;
@@ -167,14 +168,8 @@
             z-index: 2;
         }
 
-        td:hover .attendance-select {
-            background: rgba(255,255,255,0.03);
-        }
-
-        .attendance-select option {
-            background-color: var(--bg-card);
-            color: var(--text-primary);
-        }
+        td:hover .attendance-select { background: rgba(255,255,255,0.03); }
+        .attendance-select option { background-color: var(--bg-card); color: var(--text-primary); }
 
         .cell-present { background-color: var(--color-present) !important; color: #ffffff !important; }
         .cell-off { background-color: var(--color-off) !important; color: #ffffff !important; }
@@ -227,54 +222,142 @@
         .signature-line { border-bottom: 1px solid #555; width: 100px; display: inline-block; margin-left: 5px; vertical-align: middle;}
 
         /* ==========================================================================
-           📱 【核心防守：手機端獨立視覺與操作感優化規則】 (現有框架完全不動)
+           📱 【手機端專屬佈局 (Mobile View)】
+           ========================================================================== */
+        #mobile-container {
+            display: none; /* 預設不顯示，由媒體查詢啟動 */
+            height: 100vh;
+            flex-direction: column;
+            background-color: var(--bg-main);
+            box-sizing: border-box;
+            padding: 10px;
+        }
+
+        /* 手機端頂部日期切換導航軌 */
+        .mobile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-fine);
+            flex-shrink: 0;
+            margin-bottom: 8px;
+        }
+
+        .mobile-title { font-size: 14px; font-weight: bold; color: var(--text-muted); }
+        
+        .mobile-date-display {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .mobile-date-btn {
+            background: #2d2d2d;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 手機同仁直式卡片清單（獨立滾動） */
+        .mobile-list-wrapper {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 2px;
+        }
+
+        /* 22位同仁的手機點名大卡片 */
+        .mobile-emp-card {
+            background: #1a1a1a;
+            border: 1px solid var(--border-fine);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 48px;
+            box-sizing: border-box;
+        }
+
+        .mobile-emp-info { display: flex; flex-direction: column; }
+        .mobile-emp-role { font-size: 11px; color: var(--text-muted); }
+        .mobile-emp-name { font-size: 15px; font-weight: bold; color: #fff; margin-top: 1px; }
+
+        /* 照片同款超大方塊點名按鈕組 */
+        .mobile-btn-group { display: flex; gap: 4px; height: 100%; align-items: center; }
+        
+        .mobile-action-btn {
+            border: none;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 13px;
+            width: 52px;
+            height: 32px;
+            border-radius: 6px; /* 完美重現照片中的溫潤圓角 */
+            cursor: pointer;
+            opacity: 0.2; /* 預設灰暗，代表未選中 */
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 當按鈕被選中時，激發照片中的高飽和實體色彩 */
+        .mobile-action-btn.active-present { background-color: var(--color-present) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(40,167,69,0.4); }
+        .mobile-action-btn.active-off { background-color: var(--color-off) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(23,162,184,0.4); }
+        .mobile-action-btn.active-leave { background-color: var(--color-leave) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(220,53,69,0.4); }
+
+        .btn-p { background-color: #28a745; }
+        .btn-o { background-color: #17a2b8; }
+        .btn-l { background-color: #dc3545; }
+
+        /* 手機端週日全廠公休特殊鎖定狀態 */
+        .mobile-sunday-lock {
+            background: #2b1114;
+            color: #ff6b6b;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 4px 16px;
+            border-radius: 4px;
+            border: 1px dashed #ff4554;
+        }
+
+        /* ==========================================================================
+           ⚡ 【響應式分流切換：媒體查詢判斷】
            ========================================================================== */
         @media (max-width: 768px) {
-            .container { padding: 10px 10px; }
-            .title-group h1 { font-size: 18px; }
-            .nav-select { font-size: 13px; padding: 2px 24px 2px 8px; }
-            
-            /* 縮緊左側固定欄，把黃金空間留給橫向滾動 */
-            .sticky-col-1 { width: 62px !important; min-width: 62px !important; font-size: 11px; }
-            .sticky-col-2 { width: 55px !important; min-width: 55px !important; left: 62px !important; font-size: 11px; }
-            
-            /* 關鍵放大：讓手機端的每一天格子放大到 42px，徹底解決手指太肥按錯的問題 */
-            th, td { min-width: 42px !important; height: 25px !important; font-size: 11px; }
-            .attendance-select { font-size: 11px; }
-            
-            /* 頁尾在手機端轉為精簡縮微版 */
-            .footer-section { flex-direction: column; gap: 8px; align-items: flex-start; }
-            .status-legend { width: 100%; justify-content: space-between; gap: 0; }
-            .legal-notice { display: none; } /* 手機端自動隱藏冗長法律宣告 */
-            .signature-area { width: 100%; text-align: left; font-size: 12px; margin-top: 2px; }
+            #pc-container { display: none !important; } /* 手機隱藏電腦大表格 */
+            #mobile-container { display: flex !important; } /* 手機喚醒今日卡片介面 */
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<!-- 💻 電腦全局戰情端 -->
+<div id="pc-container">
     <div class="header-section">
-        <div class="title-group">
-            <h1>尚鵬內湖廠 考勤點名面板</h1>
-        </div>
+        <div class="title-group"><h1>尚鵬內湖廠 考勤點名面板</h1></div>
         <div class="date-control-group">
             <select id="select-year" class="nav-select">
                 <option value="2026">2026 年</option>
                 <option value="2027">2027 年</option>
             </select>
             <select id="select-month" class="nav-select">
-                <option value="1">01 月</option>
-                <option value="2">02 月</option>
-                <option value="3">03 月</option>
-                <option value="4">04 月</option>
-                <option value="5">05 月</option>
-                <option value="6" selected>06 月</option> 
-                <option value="7">07 月</option>
-                <option value="8">08 月</option>
-                <option value="9">09 月</option>
-                <option value="10">10 月</option>
-                <option value="11">11 月</option>
-                <option value="12">12 月</option>
+                <option value="1">01 月</option><option value="2">02 月</option><option value="3">03 月</option>
+                <option value="4">04 月</option><option value="5">05 月</option><option value="6" selected>06 月</option> 
+                <option value="7">07 月</option><option value="8">08 月</option><option value="9">09 月</option>
+                <option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
             </select>
         </div>
     </div>
@@ -283,12 +366,10 @@
         <table id="attendanceTable">
             <thead>
                 <tr id="header-dates">
-                    <th class="sticky-col-1">職稱</th>
-                    <th class="sticky-col-2">姓名</th>
+                    <th class="sticky-col-1">職稱</th><th class="sticky-col-2">姓名</th>
                 </tr>
                 <tr id="header-days">
-                    <th class="sticky-col-1"></th>
-                    <th class="sticky-col-2"></th>
+                    <th class="sticky-col-1"></th><th class="sticky-col-2"></th>
                 </tr>
             </thead>
             <tbody id="table-body"></tbody>
@@ -297,16 +378,31 @@
 
     <div class="footer-section">
         <div class="status-legend">
-            <div class="legend-item"><span class="legend-badge badge-present">✔ 到</span>當日出席</div>
-            <div class="legend-item"><span class="legend-badge badge-off">排休</span>預排休假</div>
-            <div class="legend-item"><span class="legend-badge badge-leave">請假</span>臨時缺勤</div>
+            <div class="legend-item"><span class="legend-badge badge-present">✔ 到</span>當日確認出席</div>
+            <div class="legend-item"><span class="legend-badge badge-off">排休</span>預排休假/輪休</div>
+            <div class="legend-item"><span class="legend-badge badge-leave">請假</span>事/病假臨時缺勤</div>
         </div>
-        <div class="legal-notice">
-            本看板整合既定排班與每日動態點名。未盡事宜悉依最新勞基法辦理。
+        <div class="legal-notice">本看板整合既定排班與每日動態點名。未盡事宜悉依最新勞基法辦理。</div>
+        <div class="signature-area">廠主管：謝或翰 <span class="signature-line"></span></div>
+    </div>
+</div>
+
+<!-- 📱 手機精確操作端 (今日焦點模式) -->
+<div id="mobile-container">
+    <div class="mobile-header">
+        <div class="mobile-title">現場動態點名</div>
+        <div class="mobile-date-display">
+            <button class="mobile-date-btn" id="m-btn-prev">＜</button>
+            <span id="m-date-text">2026/06/01</span>
+            <button class="mobile-date-btn" id="m-btn-next">＞</button>
         </div>
-        <div class="signature-area">
-            廠主管：謝或翰 <span class="signature-line"></span>
-        </div>
+    </div>
+    
+    <!-- 22 位同仁直式卡片生成容器 -->
+    <div class="mobile-list-wrapper" id="mobile-cards-container"></div>
+    
+    <div class="signature-area" style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+        廠主管核示：謝或翰 <span class="signature-line" style="width: 70px;"></span>
     </div>
 </div>
 
@@ -314,31 +410,21 @@
     const dayWords = ["日", "一", "二", "三", "四", "五", "六"];
     
     const employees = [
-        { role: "接待組長", name: "徐漢威" },
-        { role: "服務顧問", name: "陳嘉駒" },
-        { role: "服務顧問", name: "趙少華" },
-        { role: "服務顧問", name: "周永盛" },
-        { role: "出納專員", name: "劉安莉" },
-        { role: "出納專員", name: "陳宥鈺" },
-        { role: "零件組長", name: "葉佳俊" },
-        { role: "零件主任", name: "林偲育" },
-        { role: "技師長", name: "許俊皇" },
-        { role: "技師長", name: "黃宗南" },
-        { role: "引擎技師", name: "張安慶" },
-        { role: "引擎技師", name: "鄭博文" },
-        { role: "引擎技師", name: "吳瑀森" },
-        { role: "引擎技師", name: "張啟宏" },
-        { role: "引擎技師", name: "林傳傑" },
-        { role: "飯烤主任", name: "賴建良" }, 
-        { role: "鈑金領班", name: "陳哲鋒" },
-        { role: "鈑金技師", name: "許晉益" },
-        { role: "鈑金技師", name: "張元信" },
-        { role: "鈑金技師", name: "劉建昌" },
-        { role: "噴漆技師", name: "潘世宗" },
-        { role: "噴漆技師", name: "林哲宏" },
+        { role: "接待組長", name: "徐漢威" }, { role: "服務顧問", name: "陳嘉駒" },
+        { role: "服務顧問", name: "趙少華" }, { role: "服務顧問", name: "周永盛" },
+        { role: "出納專員", name: "劉安莉" }, { role: "出納專員", name: "陳宥鈺" },
+        { role: "零件組長", name: "葉佳俊" }, { role: "零件主任", name: "林偲育" },
+        { role: "技師長", name: "許俊皇" }, { role: "技師長", name: "黃宗南" },
+        { role: "引擎技師", name: "張安慶" }, { role: "引擎技師", name: "鄭博文" },
+        { role: "引擎技師", name: "吳瑀森" }, { role: "引擎技師", name: "張啟宏" },
+        { role: "引擎技師", name: "林傳傑" }, { role: "飯烤主任", name: "賴建良" }, 
+        { role: "鈑金領班", name: "陳哲鋒" }, { role: "鈑金技師", name: "許晉益" },
+        { role: "鈑金技師", name: "張元信" }, { role: "鈑金技師", name: "劉建昌" },
+        { role: "噴漆技師", name: "潘世宗" }, { role: "噴漆技師", name: "林哲宏" },
         { role: "噴漆技師", name: "黃俊隆" }
     ];
 
+    // Excel實體班表預填原始底稿
     const initialDatabase = {
         "2026-5": {
             "賴建良-7": "off", "賴建良-14": "off", "賴建良-18": "off", "賴建良-23": "off", "賴建良-25": "off",
@@ -373,68 +459,53 @@
         }
     };
 
+    // 記憶庫加載
     let globalDatabase = JSON.parse(localStorage.getItem('shangpeng_attendance_db'));
     if (!globalDatabase) {
         globalDatabase = initialDatabase;
         localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
     }
 
+    // 當前手機端關注的時間（預設初始化為2026年6月1日）
+    let mobileCurrentDate = new Date(2026, 5, 1); 
+
     const yearSelect = document.getElementById("select-year");
     const monthSelect = document.getElementById("select-month");
 
-    function renderAttendanceTable(targetYear, targetMonth) {
+    /* ==========================================================================
+       💻 電腦端大表格渲染邏輯
+       ========================================================================== */
+    function renderPCTable(targetYear, targetMonth) {
         targetYear = parseInt(targetYear);
         targetMonth = parseInt(targetMonth);
-
         const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
         
         const headerDates = document.getElementById("header-dates");
         const headerDays = document.getElementById("header-days");
-        
         while (headerDates.children.length > 2) headerDates.removeChild(headerDates.lastChild);
         while (headerDays.children.length > 2) headerDays.removeChild(headerDays.lastChild);
 
         for (let d = 1; d <= daysInMonth; d++) {
             const dateObj = new Date(targetYear, targetMonth - 1, d);
             const dayOfWeek = dateObj.getDay();
+            const thDate = document.createElement("th"); thDate.innerText = d;
+            const thDay = document.createElement("th"); thDay.innerText = dayWords[dayOfWeek];
 
-            const thDate = document.createElement("th");
-            thDate.innerText = d;
-            
-            const thDay = document.createElement("th");
-            thDay.innerText = dayWords[dayOfWeek];
-
-            if (dayOfWeek === 0) {
-                thDate.className = "sunday"; thDay.className = "sunday";
-            } else if (dayOfWeek === 6) {
-                thDate.className = "saturday"; thDay.className = "saturday";
-            }
-
-            headerDates.appendChild(thDate);
-            headerDays.appendChild(thDay);
+            if (dayOfWeek === 0) { thDate.className = "sunday"; thDay.className = "sunday"; }
+            else if (dayOfWeek === 6) { thDate.className = "saturday"; thDay.className = "saturday"; }
+            headerDates.appendChild(thDate); headerDays.appendChild(thDay);
         }
 
         const tableBody = document.getElementById("table-body");
         tableBody.innerHTML = "";
-
         const monthKey = `${targetYear}-${targetMonth}`;
-        if (!globalDatabase[monthKey]) {
-            globalDatabase[monthKey] = {};
-        }
+        if (!globalDatabase[monthKey]) globalDatabase[monthKey] = {};
         const currentMonthData = globalDatabase[monthKey];
 
         employees.forEach(emp => {
             const row = document.createElement("tr");
-
-            const tdRole = document.createElement("td");
-            tdRole.className = "sticky-col-1";
-            tdRole.innerText = emp.role;
-            row.appendChild(tdRole);
-
-            const tdName = document.createElement("td");
-            tdName.className = "sticky-col-2";
-            tdName.innerText = emp.name;
-            row.appendChild(tdName);
+            const tdRole = document.createElement("td"); tdRole.className = "sticky-col-1"; tdRole.innerText = emp.role; row.appendChild(tdRole);
+            const tdName = document.createElement("td"); tdName.className = "sticky-col-2"; tdName.innerText = emp.name; row.appendChild(tdName);
 
             for (let d = 1; d <= daysInMonth; d++) {
                 const tdCell = document.createElement("td");
@@ -442,61 +513,33 @@
                 const dayOfWeek = dateObj.getDay();
 
                 if (dayOfWeek === 0) {
-                    tdCell.className = "sunday";
-                    if (emp.name !== "") tdCell.innerText = "休";
+                    tdCell.className = "sunday"; if (emp.name !== "") tdCell.innerText = "休";
                 } else {
                     if (dayOfWeek === 6) tdCell.classList.add("saturday");
-
-                    if (targetYear === 2026 && targetMonth === 5 && d === 1 && emp.name !== "") {
-                        tdCell.classList.add("cell-national");
-                    }
-                    if (targetYear === 2026 && targetMonth === 6 && d === 19 && emp.name !== "") {
-                        tdCell.classList.add("cell-national");
-                    }
+                    if (targetYear === 2026 && targetMonth === 5 && d === 1 && emp.name !== "") tdCell.classList.add("cell-national");
+                    if (targetYear === 2026 && targetMonth === 6 && d === 19 && emp.name !== "") tdCell.classList.add("cell-national");
 
                     if (emp.name !== "") {
                         const select = document.createElement("select");
                         select.className = "attendance-select";
-                        
-                        const optDefault = document.createElement("option");
-                        optDefault.value = ""; optDefault.innerText = ""; 
-                        
-                        const optPresent = document.createElement("option");
-                        optPresent.value = "present"; optPresent.innerText = "✔ 到";
-                        
-                        const optOff = document.createElement("option");
-                        optOff.value = "off"; optOff.innerText = "排休";
-                        
-                        const optLeave = document.createElement("option");
-                        optLeave.value = "leave"; optLeave.innerText = "請假";
-
-                        select.appendChild(optDefault);
-                        select.appendChild(optPresent);
-                        select.appendChild(optOff);
-                        select.appendChild(optLeave);
+                        const options = [ {v:"", t:""}, {v:"present", t:"✔ 到"}, {v:"off", t:"排休"}, {v:"leave", t:"請假"} ];
+                        options.forEach(o => {
+                            const opt = document.createElement("option"); opt.value = o.v; opt.innerText = o.t; select.appendChild(opt);
+                        });
 
                         const empDateKey = `${emp.name}-${d}`;
                         if (currentMonthData[empDateKey]) {
-                            const savedStatus = currentMonthData[empDateKey];
-                            select.value = savedStatus;
-                            if (savedStatus === "present") select.classList.add("cell-present");
-                            if (savedStatus === "off") select.classList.add("cell-off");
-                            if (savedStatus === "leave") select.classList.add("cell-leave");
+                            const savedStatus = currentMonthData[empDateKey]; select.value = savedStatus;
+                            select.classList.add(`cell-${savedStatus}`);
                         }
 
                         select.addEventListener("change", function() {
                             this.classList.remove("cell-present", "cell-off", "cell-leave");
-                            
-                            if (this.value === "") {
-                                delete currentMonthData[empDateKey];
-                            } else {
-                                this.classList.add(`cell-${this.value}`);
-                                currentMonthData[empDateKey] = this.value;
-                            }
-                            
+                            if (this.value === "") delete currentMonthData[empDateKey];
+                            else { this.classList.add(`cell-${this.value}`); currentMonthData[empDateKey] = this.value; }
                             localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+                            renderMobileToday(); // 同步重繪手機端快照
                         });
-
                         tdCell.appendChild(select);
                     }
                 }
@@ -506,10 +549,106 @@
         });
     }
 
-    yearSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
-    monthSelect.addEventListener("change", () => renderAttendanceTable(yearSelect.value, monthSelect.value));
+    /* ==========================================================================
+       📱 手機端今日焦點大卡片渲染邏輯
+       ========================================================================== */
+    function renderMobileToday() {
+        const tYear = mobileCurrentDate.getFullYear();
+        const tMonth = mobileCurrentDate.getMonth() + 1;
+        const tDate = mobileCurrentDate.getDate();
+        const tDayOfWeek = mobileCurrentDate.getDay();
 
-    renderAttendanceTable(2026, 6);
+        // 更新頂部日期字樣
+        document.getElementById("m-date-text").innerText = `${tYear}/${String(tMonth).padStart(2,'0')}/${String(tDate).padStart(2,'0')} (${dayWords[tDayOfWeek]})`;
+
+        const container = document.getElementById("mobile-cards-container");
+        container.innerHTML = ""; // 洗牌清空
+
+        const monthKey = `${tYear}-${tMonth}`;
+        const currentMonthData = globalDatabase[monthKey] || {};
+
+        employees.forEach(emp => {
+            const card = document.createElement("div");
+            card.className = "mobile-emp-card";
+
+            const info = document.createElement("div");
+            info.className = "mobile-emp-info";
+            const roleSpan = document.createElement("span"); roleSpan.className = "mobile-emp-role"; roleSpan.innerText = emp.role;
+            const nameSpan = document.createElement("span"); nameSpan.className = "mobile-emp-name"; nameSpan.innerText = emp.name || "（未指派）";
+            info.appendChild(roleSpan); info.appendChild(nameSpan);
+            card.appendChild(info);
+
+            if (emp.name === "") {
+                // 空位處理
+                const lockLabel = document.createElement("span"); lockLabel.style.color = "#444"; lockLabel.innerText = "—"; card.appendChild(lockLabel);
+            } else if (tDayOfWeek === 0) {
+                // 週日全廠公休鎖定狀態
+                const sunLock = document.createElement("span"); sunLock.className = "mobile-sunday-lock"; sunLock.innerText = "固定公休";
+                card.appendChild(sunLock);
+            } else {
+                // 平日與週六，呼喚三個高飽和度大型 Button 組
+                const btnGroup = document.createElement("div");
+                btnGroup.className = "mobile-btn-group";
+
+                const empDateKey = `${emp.name}-${tDate}`;
+                const currentSavedStatus = currentMonthData[empDateKey] || "";
+
+                const states = [ {id:"present", t:"到", c:"active-present"}, {id:"off", t:"休", c:"active-off"}, {id:"leave", t:"假", c:"active-leave"} ];
+                
+                states.forEach(st => {
+                    const btn = document.createElement("button");
+                    btn.className = `mobile-action-btn btn-${st.id.charAt(0)}`;
+                    btn.innerText = st.t;
+                    
+                    if (currentSavedStatus === st.id) btn.classList.add(st.c);
+
+                    btn.addEventListener("click", function() {
+                        const isAlreadyActive = this.classList.contains(st.c);
+                        
+                        // 清除該員工此卡片上其餘按鈕的發光類別
+                        btnGroup.querySelectorAll(".mobile-action-btn").forEach(b => {
+                            b.classList.remove("active-present", "active-off", "active-leave");
+                        });
+
+                        if (isAlreadyActive) {
+                            // 再次點擊已亮燈按鈕 ➡️ 歸零重置為正常出勤空白
+                            delete currentMonthData[empDateKey];
+                        } else {
+                            // 點擊未亮燈按鈕 ➡️ 激活保險箱記憶並亮燈
+                            this.classList.add(st.c);
+                            currentMonthData[empDateKey] = st.id;
+                        }
+
+                        // 即時封存
+                        localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+                        // 同步刷新電腦大表格畫面
+                        renderPCTable(yearSelect.value, monthSelect.value);
+                    });
+                    btnGroup.appendChild(btn);
+                });
+                card.appendChild(btnGroup);
+            }
+            container.appendChild(card);
+        });
+    }
+
+    // 手機端前後日期切換按鈕事件
+    document.getElementById("m-btn-prev").addEventListener("click", () => {
+        mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
+        renderMobileToday();
+    });
+    document.getElementById("m-btn-next").addEventListener("click", () => {
+        mobileCurrentDate.setDate(mobileCurrentDate.getDate() + 1);
+        renderMobileToday();
+    });
+
+    // 電腦端月份切換事件
+    yearSelect.addEventListener("change", () => renderPCTable(yearSelect.value, monthSelect.value));
+    monthSelect.addEventListener("change", () => renderPCTable(yearSelect.value, monthSelect.value));
+
+    // 全自動雙端聯動初始化
+    renderPCTable(2026, 6);
+    renderMobileToday();
 </script>
 
 </body>
