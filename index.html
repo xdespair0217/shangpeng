@@ -225,7 +225,7 @@
            📱 【手機端專屬佈局 (Mobile View)】
            ========================================================================== */
         #mobile-container {
-            display: none; /* 預設不顯示，由媒體查詢啟動 */
+            display: none; 
             height: 100vh;
             flex-direction: column;
             background-color: var(--bg-main);
@@ -233,7 +233,6 @@
             padding: 10px;
         }
 
-        /* 手機端頂部日期切換導航軌 */
         .mobile-header {
             display: flex;
             justify-content: space-between;
@@ -267,7 +266,6 @@
             cursor: pointer;
         }
 
-        /* 手機同仁直式卡片清單（獨立滾動） */
         .mobile-list-wrapper {
             flex-grow: 1;
             overflow-y: auto;
@@ -277,7 +275,6 @@
             padding-right: 2px;
         }
 
-        /* 22位同仁的手機點名大卡片 */
         .mobile-emp-card {
             background: #1a1a1a;
             border: 1px solid var(--border-fine);
@@ -294,7 +291,6 @@
         .mobile-emp-role { font-size: 11px; color: var(--text-muted); }
         .mobile-emp-name { font-size: 15px; font-weight: bold; color: #fff; margin-top: 1px; }
 
-        /* 照片同款超大方塊點名按鈕組 */
         .mobile-btn-group { display: flex; gap: 4px; height: 100%; align-items: center; }
         
         .mobile-action-btn {
@@ -304,16 +300,15 @@
             font-size: 13px;
             width: 52px;
             height: 32px;
-            border-radius: 6px; /* 完美重現照片中的溫潤圓角 */
+            border-radius: 6px; 
             cursor: pointer;
-            opacity: 0.2; /* 預設灰暗，代表未選中 */
+            opacity: 0.2; 
             transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* 當按鈕被選中時，激發照片中的高飽和實體色彩 */
         .mobile-action-btn.active-present { background-color: var(--color-present) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(40,167,69,0.4); }
         .mobile-action-btn.active-off { background-color: var(--color-off) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(23,162,184,0.4); }
         .mobile-action-btn.active-leave { background-color: var(--color-leave) !important; opacity: 1 !important; box-shadow: 0 0 8px rgba(220,53,69,0.4); }
@@ -322,7 +317,6 @@
         .btn-o { background-color: #17a2b8; }
         .btn-l { background-color: #dc3545; }
 
-        /* 手機端週日全廠公休特殊鎖定狀態 */
         .mobile-sunday-lock {
             background: #2b1114;
             color: #ff6b6b;
@@ -333,18 +327,14 @@
             border: 1px dashed #ff4554;
         }
 
-        /* ==========================================================================
-           ⚡ 【響應式分流切換：媒體查詢判斷】
-           ========================================================================== */
         @media (max-width: 768px) {
-            #pc-container { display: none !important; } /* 手機隱藏電腦大表格 */
-            #mobile-container { display: flex !important; } /* 手機喚醒今日卡片介面 */
+            #pc-container { display: none !important; } 
+            #mobile-container { display: flex !important; } 
         }
     </style>
 </head>
 <body>
 
-<!-- 💻 電腦全局戰情端 -->
 <div id="pc-container">
     <div class="header-section">
         <div class="title-group"><h1>尚鵬內湖廠 考勤點名面板</h1></div>
@@ -387,7 +377,6 @@
     </div>
 </div>
 
-<!-- 📱 手機精確操作端 (今日焦點模式) -->
 <div id="mobile-container">
     <div class="mobile-header">
         <div class="mobile-title">現場動態點名</div>
@@ -398,7 +387,6 @@
         </div>
     </div>
     
-    <!-- 22 位同仁直式卡片生成容器 -->
     <div class="mobile-list-wrapper" id="mobile-cards-container"></div>
     
     <div class="signature-area" style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--text-muted);">
@@ -424,7 +412,6 @@
         { role: "噴漆技師", name: "黃俊隆" }
     ];
 
-    // Excel實體班表預填原始底稿
     const initialDatabase = {
         "2026-5": {
             "賴建良-7": "off", "賴建良-14": "off", "賴建良-18": "off", "賴建良-23": "off", "賴建良-25": "off",
@@ -459,14 +446,12 @@
         }
     };
 
-    // 記憶庫加載
     let globalDatabase = JSON.parse(localStorage.getItem('shangpeng_attendance_db'));
     if (!globalDatabase) {
         globalDatabase = initialDatabase;
         localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
     }
 
-    // 當前手機端關注的時間（預設初始化為2026年6月1日）
     let mobileCurrentDate = new Date(2026, 5, 1); 
 
     const yearSelect = document.getElementById("select-year");
@@ -538,7 +523,12 @@
                             if (this.value === "") delete currentMonthData[empDateKey];
                             else { this.classList.add(`cell-${this.value}`); currentMonthData[empDateKey] = this.value; }
                             localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
-                            renderMobileToday(); // 同步重繪手機端快照
+                            
+                            // 當電腦端被手動調整時，若與手機當前關注日期同月，則即時連動手機端畫面
+                            if (parseInt(yearSelect.value) === mobileCurrentDate.getFullYear() && 
+                                parseInt(monthSelect.value) === (mobileCurrentDate.getMonth() + 1)) {
+                                renderMobileToday();
+                            }
                         });
                         tdCell.appendChild(select);
                     }
@@ -561,8 +551,12 @@
         // 更新頂部日期字樣
         document.getElementById("m-date-text").innerText = `${tYear}/${String(tMonth).padStart(2,'0')}/${String(tDate).padStart(2,'0')} (${dayWords[tDayOfWeek]})`;
 
+        // ✨【關鍵修正點 1】手機端切換日期時，強制同步修正電腦端的下拉選單，使雙端時空錨點保持一致
+        if (yearSelect) yearSelect.value = tYear.toString();
+        if (monthSelect) monthSelect.value = tMonth.toString();
+
         const container = document.getElementById("mobile-cards-container");
-        container.innerHTML = ""; // 洗牌清空
+        container.innerHTML = ""; 
 
         const monthKey = `${tYear}-${tMonth}`;
         const currentMonthData = globalDatabase[monthKey] || {};
@@ -579,14 +573,11 @@
             card.appendChild(info);
 
             if (emp.name === "") {
-                // 空位處理
                 const lockLabel = document.createElement("span"); lockLabel.style.color = "#444"; lockLabel.innerText = "—"; card.appendChild(lockLabel);
             } else if (tDayOfWeek === 0) {
-                // 週日全廠公休鎖定狀態
                 const sunLock = document.createElement("span"); sunLock.className = "mobile-sunday-lock"; sunLock.innerText = "固定公休";
                 card.appendChild(sunLock);
             } else {
-                // 平日與週六，呼喚三個高飽和度大型 Button 組
                 const btnGroup = document.createElement("div");
                 btnGroup.className = "mobile-btn-group";
 
@@ -605,24 +596,30 @@
                     btn.addEventListener("click", function() {
                         const isAlreadyActive = this.classList.contains(st.c);
                         
-                        // 清除該員工此卡片上其餘按鈕的發光類別
+                        // ✨【關鍵修正點 2】動態捕獲點擊當下的最新年月 Key，杜絕跨月點擊時造成的資料庫定位遺失
+                        const activeYear = mobileCurrentDate.getFullYear();
+                        const activeMonth = mobileCurrentDate.getMonth() + 1;
+                        const activeMonthKey = `${activeYear}-${activeMonth}`;
+                        
+                        if (!globalDatabase[activeMonthKey]) globalDatabase[activeMonthKey] = {};
+                        const targetMonthData = globalDatabase[activeMonthKey];
+
                         btnGroup.querySelectorAll(".mobile-action-btn").forEach(b => {
                             b.classList.remove("active-present", "active-off", "active-leave");
                         });
 
                         if (isAlreadyActive) {
-                            // 再次點擊已亮燈按鈕 ➡️ 歸零重置為正常出勤空白
-                            delete currentMonthData[empDateKey];
+                            delete targetMonthData[empDateKey];
                         } else {
-                            // 點擊未亮燈按鈕 ➡️ 激活保險箱記憶並亮燈
                             this.classList.add(st.c);
-                            currentMonthData[empDateKey] = st.id;
+                            targetMonthData[empDateKey] = st.id;
                         }
 
-                        // 即時封存
+                        // 即時封存至瀏覽器保險箱
                         localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
-                        // 同步刷新電腦大表格畫面
-                        renderPCTable(yearSelect.value, monthSelect.value);
+                        
+                        // 精確更新電腦端畫面，不再盲目依賴舊的選單狀態
+                        renderPCTable(activeYear, activeMonth);
                     });
                     btnGroup.appendChild(btn);
                 });
@@ -632,14 +629,16 @@
         });
     }
 
-    // 手機端前後日期切換按鈕事件
+    // 手機端前後日期切換事件
     document.getElementById("m-btn-prev").addEventListener("click", () => {
         mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
         renderMobileToday();
+        renderPCTable(yearSelect.value, monthSelect.value); // 切換日期時一併連動電腦大表格
     });
     document.getElementById("m-btn-next").addEventListener("click", () => {
         mobileCurrentDate.setDate(mobileCurrentDate.getDate() + 1);
         renderMobileToday();
+        renderPCTable(yearSelect.value, monthSelect.value); // 切換日期時一併連動電腦大表格
     });
 
     // 電腦端月份切換事件
