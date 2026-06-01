@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>尚鵬內湖廠 考勤點名決策面板 (雲端同步版)</title>
+    <title>尚鵬內湖廠 考勤點名決策面板 (雲端雙軌版)</title>
     <style>
         :root {
             --bg-main: #121212;          
@@ -32,12 +32,12 @@
             box-sizing: border-box;
         }
 
-        /* Loading 遮罩提示 */
+        /* 雲端同步狀態提示 */
         #sync-loader {
             position: fixed;
             top: 10px;
             right: 10px;
-            background: rgba(40, 167, 69, 0.9);
+            background: rgba(23, 162, 184, 0.9);
             color: #fff;
             padding: 5px 15px;
             border-radius: 20px;
@@ -350,13 +350,11 @@
 </head>
 <body>
 
-<!-- 頂部雲端狀態指示燈 -->
-<div id="sync-loader">雲端資料同步中...</div>
+<div id="sync-loader">雲端同步中...</div>
 
-<!-- 💻 電腦全局戰情端 -->
 <div id="pc-container">
     <div class="header-section">
-        <div class="title-group"><h1>尚鵬內湖廠 考勤點名面板 (雲端同步版)</h1></div>
+        <div class="title-group"><h1>尚鵬內湖廠 考勤點名面板</h1></div>
         <div class="date-control-group">
             <select id="select-year" class="nav-select">
                 <option value="2026">2026 年</option>
@@ -396,7 +394,6 @@
     </div>
 </div>
 
-<!-- 📱 手機精確操作端 -->
 <div id="mobile-container">
     <div class="mobile-header">
         <div class="mobile-title">現場動態點名</div>
@@ -416,7 +413,7 @@
 
 <script>
     // ==========================================================================
-    // 🔗 【Google Apps Script 雲端數據通道已綁定】
+    // 🔗 雲端通道配置
     // ==========================================================================
     const GAS_WEB_API = "https://script.google.com/macros/s/AKfycbzX9a8QW_GHyk68ASp9XZJE-O1vQfiI4FED_oKBDzVcgozpDMv9CnHcvEPQliEY05qC7Q/exec";
 
@@ -437,7 +434,46 @@
         { role: "噴漆技師", name: "黃俊隆" }
     ];
 
-    let globalDatabase = {}; 
+    const initialDatabase = {
+        "2026-5": {
+            "賴建良-7": "off", "賴建良-14": "off", "賴建良-18": "off", "賴建良-23": "off", "賴建良-25": "off",
+            "周永盛-4": "leave", "周永盛-8": "off", "周永盛-13": "off", "周永盛-20": "off", "周永盛-27": "off",
+            "陳哲鋒-7": "off", "陳哲鋒-14": "off", "陳哲鋒-21": "off", "陳哲鋒-28": "off",
+            "許晉益-6": "off", "許晉益-9": "off", "許晉益-16": "off", "許晉益-18": "leave", "許晉益-23": "off", "許晉益-31": "off",
+            "張元信-5": "off", "張元信-20": "off", "張元信-26": "off",
+            "潘世宗-6": "off", "潘世宗-16": "off", "潘世宗-23": "off", "潘世宗-31": "off"
+        },
+        "2026-6": {
+            "徐漢威-3": "off", "徐漢威-13": "off", "徐漢威-24": "off", "徐漢威-30": "off",
+            "陳嘉駒-6": "off", "陳嘉駒-20": "off", "陳嘉駒-27": "off",
+            "趙少華-2": "off", "趙少華-16": "off", "趙少華-17": "off", "趙少華-22": "off",
+            "周永盛-3": "off", "周永盛-10": "off", "周永盛-25": "off", "周永盛-30": "off",
+            "劉安莉-6": "off", "劉安莉-13": "off", "劉安莉-20": "off", "劉安莉-27": "off",
+            "陳宥鈺-4": "off", "陳宥鈺-9": "off", "陳宥鈺-20": "off", "陳宥鈺-25": "off",
+            "葉佳俊-5": "off", "葉佳俊-12": "off", "葉佳俊-18": "off", "葉佳俊-26": "off",
+            "林偲育-6": "off", "林偲育-13": "off", "林偲育-22": "off", "林偲育-27": "off",
+            "許俊皇-6": "off", "許俊皇-13": "off", "許俊皇-20": "off", "許俊皇-27": "off",
+            "黃宗南-3": "off", "黃宗南-10": "off", "黃宗南-24": "off", "黃宗南-29": "off",
+            "張安慶-1": "off", "張安慶-2": "off", "張安慶-10": "off", "張安慶-29": "off",
+            "鄭博文-5": "off", "鄭博文-12": "off", "鄭博文-18": "off", "鄭博文-27": "off",
+            "吳瑀森-3": "off", "吳瑀森-10": "off", "吳瑀森-17": "leave", "吳瑀森-18": "leave", "吳瑀森-20": "off", "吳瑀森-24": "off",
+            "張啟宏-2": "off", "張啟宏-4": "off", "張啟宏-20": "off", "張啟宏-27": "off",
+            "林傳傑-5": "off", "林傳傑-8": "off", "林傳傑-15": "off", "林傳傑-22": "off",
+            "賴建良-6": "off", "賴建良-10": "off", "賴建良-20": "off", "賴建良-26": "off",
+            "陳哲鋒-4": "off", "陳哲鋒-9": "off", "陳哲鋒-18": "off", "陳哲鋒-25": "off",
+            "許晉益-6": "off", "許晉益-13": "off", "許晉益-20": "off", "許晉益-27": "off",
+            "張元信-3": "off", "張元信-8": "off", "張元信-15": "off", "張元信-22": "off",
+            "劉建昌-6": "off", "劉建昌-13": "off", "劉建昌-20": "off", "劉建昌-27": "off",
+            "潘世宗-6": "off", "潘世宗-13": "off", "潘世宗-20": "off", "潘世宗-27": "off"
+        }
+    };
+
+    let globalDatabase = JSON.parse(localStorage.getItem('shangpeng_attendance_db'));
+    if (!globalDatabase) {
+        globalDatabase = initialDatabase;
+        localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+    }
+
     let mobileCurrentDate = new Date(2026, 5, 1); 
 
     const yearSelect = document.getElementById("select-year");
@@ -449,15 +485,14 @@
         loader.style.display = show ? "block" : "none";
     }
 
-    // 🌐 核心機制：從 Google Sheet 下載全廠資料
+    // 🌐 從雲端同步至本地（背景執行）
     async function fetchDatabaseFromCloud() {
         if (!GAS_WEB_API) return;
-        toggleLoader(true);
         try {
             const response = await fetch(GAS_WEB_API);
             const cloudData = await response.json();
             
-            globalDatabase = {};
+            let hasCloudUpdate = false;
             for (let key in cloudData) {
                 const parts = key.split('-');
                 if (parts.length === 4) {
@@ -469,17 +504,23 @@
                     const empDateKey = `${empName}-${day}`;
                     
                     if (!globalDatabase[monthKey]) globalDatabase[monthKey] = {};
-                    globalDatabase[monthKey][empDateKey] = cloudData[key];
+                    if (globalDatabase[monthKey][empDateKey] !== cloudData[key]) {
+                        globalDatabase[monthKey][empDateKey] = cloudData[key];
+                        hasCloudUpdate = true;
+                    }
                 }
             }
+            if (hasCloudUpdate) {
+                localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+                renderPCTable(yearSelect.value, monthSelect.value);
+                renderMobileToday();
+            }
         } catch (error) {
-            console.error("從雲端載入資料失敗:", error);
-        } finally {
-            toggleLoader(false);
+            console.log("雲端讀取暫時受阻，使用本地快照。");
         }
     }
 
-    // 🌐 核心機制：同步寫入雲端資料庫
+    // 🌐 備份至雲端（⚡ 移除內部的阻塞阻斷，並優化錯誤捕捉）
     async function saveDatabaseToCloud() {
         if (!GAS_WEB_API) return;
         toggleLoader(true);
@@ -506,9 +547,9 @@
                 body: JSON.stringify({ action: "save", data: flatData })
             });
         } catch (error) {
-            console.error("同步至雲端失敗:", error);
+            console.error("雲端備份失敗:", error);
         } finally {
-            setTimeout(() => toggleLoader(false), 800);
+            setTimeout(() => toggleLoader(false), 500);
         }
     }
 
@@ -573,12 +614,15 @@
                             select.classList.add(`cell-${savedStatus}`);
                         }
 
-                        select.addEventListener("change", async function() {
+                        select.addEventListener("change", function() {
                             this.classList.remove("cell-present", "cell-off", "cell-leave");
                             if (this.value === "") delete currentMonthData[empDateKey];
                             else { this.classList.add(`cell-${this.value}`); currentMonthData[empDateKey] = this.value; }
                             
-                            await saveDatabaseToCloud(); 
+                            localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
+                            
+                            // 💻 電腦端改動：直接放行上傳，不阻斷後續 UI
+                            saveDatabaseToCloud(); 
                             
                             if (parseInt(yearSelect.value) === mobileCurrentDate.getFullYear() && 
                                 parseInt(monthSelect.value) === (mobileCurrentDate.getMonth() + 1)) {
@@ -648,7 +692,7 @@
                     
                     if (currentSavedStatus === st.id) btn.classList.add(st.c);
 
-                    btn.addEventListener("click", async function() {
+                    btn.addEventListener("click", function() {
                         const isAlreadyActive = this.classList.contains(st.c);
                         
                         const activeYear = mobileCurrentDate.getFullYear();
@@ -669,9 +713,13 @@
                             targetMonthData[empDateKey] = st.id;
                         }
 
+                        // 🔒 1. 優先保證本地寫入成功：手機介面絕對會秒速變色、亮燈
+                        localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
                         renderMobileToday(); 
-                        await saveDatabaseToCloud(); 
                         renderPCTable(activeYear, activeMonth); 
+
+                        // ☁️ 2. 【核心優化】徹底移除 await！丟到背景默默上傳，絕不卡死手機網頁
+                        saveDatabaseToCloud(); 
                     });
                     btnGroup.appendChild(btn);
                 });
@@ -681,7 +729,7 @@
         });
     }
 
-    // 手機端前後日期切換事件
+    // 手機端前後日期切換
     document.getElementById("m-btn-prev").addEventListener("click", () => {
         mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
         renderMobileToday();
@@ -702,10 +750,12 @@
     });
 
     // 初始化系統
-    async function initSystem() {
-        await fetchDatabaseFromCloud();
+    function initSystem() {
         renderPCTable(2026, 6);
         renderMobileToday();
+        
+        // 背景讀取雲端最新狀態
+        fetchDatabaseFromCloud();
     }
 
     initSystem();
