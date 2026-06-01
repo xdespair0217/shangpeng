@@ -335,6 +335,7 @@
 </head>
 <body>
 
+<!-- 💻 電腦全局戰情端 -->
 <div id="pc-container">
     <div class="header-section">
         <div class="title-group"><h1>尚鵬內湖廠 考勤點名面板</h1></div>
@@ -377,6 +378,7 @@
     </div>
 </div>
 
+<!-- 📱 手機精確操作端 (今日焦點模式) -->
 <div id="mobile-container">
     <div class="mobile-header">
         <div class="mobile-title">現場動態點名</div>
@@ -457,6 +459,9 @@
     const yearSelect = document.getElementById("select-year");
     const monthSelect = document.getElementById("select-month");
 
+    // ⚡ 核心修正機制：設置旗標（Flag）阻斷連動事件死循環
+    let isProgrammaticUpdate = false;
+
     /* ==========================================================================
        💻 電腦端大表格渲染邏輯
        ========================================================================== */
@@ -524,7 +529,6 @@
                             else { this.classList.add(`cell-${this.value}`); currentMonthData[empDateKey] = this.value; }
                             localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
                             
-                            // 當電腦端被手動調整時，若與手機當前關注日期同月，則即時連動手機端畫面
                             if (parseInt(yearSelect.value) === mobileCurrentDate.getFullYear() && 
                                 parseInt(monthSelect.value) === (mobileCurrentDate.getMonth() + 1)) {
                                 renderMobileToday();
@@ -548,12 +552,13 @@
         const tDate = mobileCurrentDate.getDate();
         const tDayOfWeek = mobileCurrentDate.getDay();
 
-        // 更新頂部日期字樣
         document.getElementById("m-date-text").innerText = `${tYear}/${String(tMonth).padStart(2,'0')}/${String(tDate).padStart(2,'0')} (${dayWords[tDayOfWeek]})`;
 
-        // ✨【關鍵修正點 1】手機端切換日期時，強制同步修正電腦端的下拉選單，使雙端時空錨點保持一致
+        // ✨ 阻斷核心：防止修改電腦下拉選單時觸發重繪死循環
+        isProgrammaticUpdate = true;
         if (yearSelect) yearSelect.value = tYear.toString();
         if (monthSelect) monthSelect.value = tMonth.toString();
+        isProgrammaticUpdate = false;
 
         const container = document.getElementById("mobile-cards-container");
         container.innerHTML = ""; 
@@ -596,7 +601,6 @@
                     btn.addEventListener("click", function() {
                         const isAlreadyActive = this.classList.contains(st.c);
                         
-                        // ✨【關鍵修正點 2】動態捕獲點擊當下的最新年月 Key，杜絕跨月點擊時造成的資料庫定位遺失
                         const activeYear = mobileCurrentDate.getFullYear();
                         const activeMonth = mobileCurrentDate.getMonth() + 1;
                         const activeMonthKey = `${activeYear}-${activeMonth}`;
@@ -615,10 +619,11 @@
                             targetMonthData[empDateKey] = st.id;
                         }
 
-                        // 即時封存至瀏覽器保險箱
                         localStorage.setItem('shangpeng_attendance_db', JSON.stringify(globalDatabase));
                         
-                        // 精確更新電腦端畫面，不再盲目依賴舊的選單狀態
+                        // ✨ 修正點：UI 先行，點擊後手機介面立即給予視覺反饋
+                        renderMobileToday();
+                        // 同步刷新電腦大表格
                         renderPCTable(activeYear, activeMonth);
                     });
                     btnGroup.appendChild(btn);
@@ -633,19 +638,23 @@
     document.getElementById("m-btn-prev").addEventListener("click", () => {
         mobileCurrentDate.setDate(mobileCurrentDate.getDate() - 1);
         renderMobileToday();
-        renderPCTable(yearSelect.value, monthSelect.value); // 切換日期時一併連動電腦大表格
+        renderPCTable(yearSelect.value, monthSelect.value); 
     });
     document.getElementById("m-btn-next").addEventListener("click", () => {
         mobileCurrentDate.setDate(mobileCurrentDate.getDate() + 1);
         renderMobileToday();
-        renderPCTable(yearSelect.value, monthSelect.value); // 切換日期時一併連動電腦大表格
+        renderPCTable(yearSelect.value, monthSelect.value); 
     });
 
-    // 電腦端月份切換事件
-    yearSelect.addEventListener("change", () => renderPCTable(yearSelect.value, monthSelect.value));
-    monthSelect.addEventListener("change", () => renderPCTable(yearSelect.value, monthSelect.value));
+    // 電腦端月份切換事件（加入旗標判斷，避開手機觸發的死循環）
+    yearSelect.addEventListener("change", () => {
+        if (!isProgrammaticUpdate) renderPCTable(yearSelect.value, monthSelect.value);
+    });
+    monthSelect.addEventListener("change", () => {
+        if (!isProgrammaticUpdate) renderPCTable(yearSelect.value, monthSelect.value);
+    });
 
-    // 全自動雙端聯動初始化
+    // 初始化
     renderPCTable(2026, 6);
     renderMobileToday();
 </script>
